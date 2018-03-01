@@ -10,14 +10,12 @@ class ADBAutomation
 private:
 	class ModeAutomation * modeAutomation;
 
-public:
-	ADBAutomation();
-	~ADBAutomation();
-
 private:
 	void initializeDirectory();
 
 public:
+	ADBAutomation();
+	~ADBAutomation();
 	void testDirectory();
 	void run();
 };

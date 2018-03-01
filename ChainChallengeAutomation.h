@@ -4,6 +4,12 @@
 
 #include "ModeAutomation.h"
 
+enum ChainChallengeError
+{
+	INVALID_ANSWER,
+	INVALID_COMPLETION_TIME
+};
+
 class ChainChallengeAutomation : public ModeAutomation
 {
 private:
@@ -11,8 +17,9 @@ private:
 	bool isDead;					// Denotes if the team is dead after an auto-battle run or not.
 
 private:
+	void printError(ChainChallengeError error);
 	void initializeData();
-
+	
 public:
 	ChainChallengeAutomation();		// Default constructor.
 	void run();
