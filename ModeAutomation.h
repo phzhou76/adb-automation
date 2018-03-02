@@ -6,6 +6,12 @@
 #include <mutex>
 #include <condition_variable>
 
+enum ModeTypes
+{
+	TempestTrials,
+	ChainChallenge
+};
+
 enum StaminaError
 {
 	INVALID_STAMINA_TYPE,
@@ -21,12 +27,13 @@ private:
 	std::thread thr;				// Thread for running stamina refresh.
 	std::mutex mtx;
 	std::condition_variable cv;
-	bool isRunning;					// Denotes if thread should be running.
+	bool bIsRunning;				// Denotes if thread should be running.
 	bool bExternalChange;			// Denotes if an external change to stamina or countdown will happen.
 
 protected:
 	int stamina;		// Current stamina of the player.
 	int secondsLeft;	// Number of seconds left until stamina should be incremented.
+	bool bDeviceAFK;	// Denotes if waiting is being done on device.
 
 private:
 	void printError(StaminaError error);
@@ -40,13 +47,14 @@ private:
 
 protected:
 	int getStamina();
-	void setStamina(int stamina);
+	void setStamina(int staminaInput);
 	int getSecondsLeft();
-	void setSecondsLeft(int secondsLeft);
+	void setSecondsLeft(int secondsLeftInput);
 
 public:
 	ModeAutomation();		// Default constructor.
 	void endStaminaThread();
+	void preventDeviceSleep();
 	virtual void run() = 0;	// Implementation is specific to the mode that is being automated.
 };
 

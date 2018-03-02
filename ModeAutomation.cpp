@@ -50,13 +50,13 @@ void ModeAutomation::initializeStamina()
 	std::getline(std::cin, input);
 
 	// Error checking on stamina values.
-	if (!(std::stringstream(input) >> this->stamina))
+	if (!(std::stringstream(input) >> stamina))
 		printError(StaminaError::INVALID_STAMINA_TYPE);
-	else if (this->stamina > 99 || this->stamina < 0)
+	else if (stamina > 99 || stamina < 0)
 		printError(StaminaError::INVALID_STAMINA_AMOUNT);
 
 	// Read in the player's time left until next stamina point refresh.
-	std::cout << std::endl << "Enter the time left until next stamina point refresh in [minutes:seconds] format: ";
+	std::cout << "Enter the time left until next stamina point refresh in [minutes:seconds] format: ";
 	std::getline(std::cin, input);
 
 	// Extract the minute and second fields, and do error checking on the inputs.
@@ -75,10 +75,10 @@ void ModeAutomation::initializeStamina()
 	if (!(std::stringstream(input.substr(colonIndex + 1)) >> seconds))
 		printError(StaminaError::INVALID_TIME_TYPE);
 
-	this->secondsLeft = minutes * 60 + seconds;
+	secondsLeft = minutes * 60 + seconds;
 
 	// Neither minutes or seconds can be negative, and the total must be at most 300 seconds.
-	if (minutes < 0 || seconds < 0 || this->secondsLeft > 300)
+	if (minutes < 0 || seconds < 0 || secondsLeft > 300)
 		printError(StaminaError::INVALID_TIME_AMOUNT);
 
 	// Immediately start the countdown once values have been initialized.
@@ -93,14 +93,14 @@ void ModeAutomation::initializeStamina()
  */
 bool ModeAutomation::noExternalChanges()
 {
-	return !(this->bExternalChange);
+	return !bExternalChange;
 }
 
 /**
- * Adjusts stamina amount based on the countdown timer. 
- * Note: Atomic variables are only useful if two threads are running the same line of 
+ * Adjusts stamina amount based on the countdown timer.
+ * Note: Atomic variables are only useful if two threads are running the same line of
  * code so that there are no race conditions within that single line. But if two threads
- * are running different pieces of code that affect a variable's value, need to use 
+ * are running different pieces of code that affect a variable's value, need to use
  * mutex and condition variables.
  */
 void ModeAutomation::adjustStamina()
@@ -113,7 +113,7 @@ void ModeAutomation::adjustStamina()
 	cv.wait(lock, std::bind(&ModeAutomation::noExternalChanges, this));
 
 	// Edge case - stamina cannot go above 99. Stop and reset countdown when it does.
-	if (stamina >= 99) 
+	if (stamina >= 99)
 	{
 		stamina = 99;
 		secondsLeft = 300;
@@ -130,8 +130,6 @@ void ModeAutomation::adjustStamina()
 		++stamina;
 		secondsLeft = 300;
 	}
-	
-	std::cout << "Stamina: " << stamina << " Seconds Left: " << secondsLeft << std::endl;
 
 	// Release the lock.
 	lock.unlock();
@@ -143,7 +141,7 @@ void ModeAutomation::adjustStamina()
  */
 void ModeAutomation::refreshStamina()
 {
-	while (isRunning)
+	while (bIsRunning)
 	{
 		// Sleep for one second to properly decrement the countdown timer.
 		std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -168,21 +166,21 @@ void ModeAutomation::runStaminaThread()
 int ModeAutomation::getStamina()
 {
 	std::lock_guard<std::mutex> lock(mtx);
-	return this->stamina;
+	return stamina;
 }
 
 /**
  * Setter for the amount of stamina that the player has.
  *
- * @param stamina The new amount of stamina that the player should have.
+ * @param staminaInput The new amount of stamina that the player should have.
  */
-void ModeAutomation::setStamina(int stamina)
+void ModeAutomation::setStamina(int staminaInput)
 {
 	// Alert worker thread to pause so that stamina can be updated.
 	bExternalChange = true;
 
 	std::unique_lock<std::mutex> lock(mtx);
-	this->stamina = stamina;
+	stamina = staminaInput;
 	bExternalChange = false;
 
 	lock.unlock();
@@ -197,21 +195,21 @@ void ModeAutomation::setStamina(int stamina)
 int ModeAutomation::getSecondsLeft()
 {
 	std::lock_guard<std::mutex> lock(mtx);
-	return this->secondsLeft;
+	return secondsLeft;
 }
 
 /**
  * Setter for the amount of time left until stamina refresh.
  *
- * @param secondsLeft The new amount of time left until stamina refresh.
+ * @param secondsLeftInput The new amount of time left until stamina refresh.
  */
-void ModeAutomation::setSecondsLeft(int secondsLeft)
+void ModeAutomation::setSecondsLeft(int secondsLeftInput)
 {
 	// Alert worker thread to pause so that secondsLeft can be updated.
 	bExternalChange = true;
 
 	std::unique_lock<std::mutex> lock(mtx);
-	this->secondsLeft = secondsLeft;
+	secondsLeft = secondsLeftInput;
 	bExternalChange = false;
 
 	lock.unlock();
@@ -226,8 +224,9 @@ ModeAutomation::ModeAutomation()
 {
 	// Initialize all field variables.
 	stamina = secondsLeft = 0;
-	isRunning = true;
+	bIsRunning = true;
 	bExternalChange = false;
+	bDeviceAFK = false;
 
 	// Prompt user input to properly set stamina and secondsLeft fields.
 	initializeStamina();
@@ -239,6 +238,19 @@ ModeAutomation::ModeAutomation()
  */
 void ModeAutomation::endStaminaThread()
 {
-	isRunning = false;
+	bIsRunning = false;
 	thr.join();
+}
+
+/**
+* Prevents the Android device from sleeping by sending inputs.
+*/
+void ModeAutomation::preventDeviceSleep()
+{
+	while (bDeviceAFK)
+	{
+		// Prevent spamming of inputs.
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+		system("adb.exe shell input tap 700 975");
+	}
 }

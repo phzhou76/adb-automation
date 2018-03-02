@@ -14,12 +14,14 @@ class ChainChallengeAutomation : public ModeAutomation
 {
 private:
 	int secondsToComplete;			// Amount of time in seconds to complete a chain challenge.
-	bool isDead;					// Denotes if the team is dead after an auto-battle run or not.
+	bool teamDies;					// Denotes if the team dies after an auto-battle run or not.
 
 private:
 	void printError(ChainChallengeError error);
 	void initializeData();
-	
+	void enterChainChallenge();
+	void leaveChainChallenge();
+
 public:
 	ChainChallengeAutomation();		// Default constructor.
 	void run();
