@@ -33,7 +33,6 @@ private:
 protected:
 	int stamina;		// Current stamina of the player.
 	int secondsLeft;	// Number of seconds left until stamina should be incremented.
-	bool bDeviceAFK;	// Denotes if waiting is being done on device.
 
 private:
 	void printError(StaminaError error);
@@ -50,11 +49,11 @@ protected:
 	void setStamina(int staminaInput);
 	int getSecondsLeft();
 	void setSecondsLeft(int secondsLeftInput);
+	void checkSufficientStamina(int requiredStamina);
 
 public:
 	ModeAutomation();		// Default constructor.
 	void endStaminaThread();
-	void preventDeviceSleep();
 	virtual void run() = 0;	// Implementation is specific to the mode that is being automated.
 };
 

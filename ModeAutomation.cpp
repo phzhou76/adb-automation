@@ -5,6 +5,8 @@
 
 #include "ModeAutomation.h"
 
+#define DEBUG 0
+
 /**
  * Given the error code, prints the respective error, and exits the program upon keypress.
  *
@@ -52,7 +54,7 @@ void ModeAutomation::initializeStamina()
 	// Error checking on stamina values.
 	if (!(std::stringstream(input) >> stamina))
 		printError(StaminaError::INVALID_STAMINA_TYPE);
-	else if (stamina > 99 || stamina < 0)
+	else if (stamina < 0)
 		printError(StaminaError::INVALID_STAMINA_AMOUNT);
 
 	// Read in the player's time left until next stamina point refresh.
@@ -112,11 +114,9 @@ void ModeAutomation::adjustStamina()
 	std::unique_lock<std::mutex> lock(mtx);
 	cv.wait(lock, std::bind(&ModeAutomation::noExternalChanges, this));
 
-	// Edge case - stamina cannot go above 99. Stop and reset countdown when it does.
+	// Edge case - stamina cannot go above 99.
 	if (stamina >= 99)
 	{
-		stamina = 99;
-		secondsLeft = 300;
 		lock.unlock();
 		return;
 	}
@@ -130,6 +130,10 @@ void ModeAutomation::adjustStamina()
 		++stamina;
 		secondsLeft = 300;
 	}
+
+#if DEBUG
+	std::cout << "Stamina: " << stamina << " Seconds Left: " << secondsLeft << std::endl;
+#endif
 
 	// Release the lock.
 	lock.unlock();
@@ -217,6 +221,44 @@ void ModeAutomation::setSecondsLeft(int secondsLeftInput)
 }
 
 /**
+ * Determines if the amount of stamina that the player has is sufficient for the mode
+ * that the player is attempting to enter. If the amount of stamina that the player has
+ * is insufficient for the required amount, then this function will sleep and
+ * periodically send an input to the phone to keep it awake until there is a sufficient
+ * amount of stamina.
+ *
+ * @param requiredStamina The amount of stamina required for the mode.
+ */
+void ModeAutomation::checkSufficientStamina(int requiredStamina)
+{
+	int missingStamina = requiredStamina - getStamina();
+
+	// There is sufficient stamina for the mode.
+	if (missingStamina <= 0)
+		return;
+
+	// Number of seconds to wait to acquire sufficient stamina for the mode.
+	int timeToWait = missingStamina * 300 - (300 - getSecondsLeft());
+
+#if DEBUG
+	std::cout << "Have to wait " << timeToWait << " seconds..." << std::endl;
+#endif
+
+	// Determine how many times an input must be sent to the phone to keep it awake.
+	int wakeCount = timeToWait / 1500;
+
+	for (int i = 0; i < wakeCount; ++i)
+	{
+		// Phone falls asleep after 1800 seconds, so send an input every 1500 seconds.
+		std::this_thread::sleep_for(std::chrono::seconds(1500));
+		system("adb.exe shell input tap 700 975");
+	}
+
+	// Wait the final number of seconds that remain.
+	std::this_thread::sleep_for(std::chrono::seconds(timeToWait % 1500));
+}
+
+/**
 * Default constructor for the mode automation class. Will prompt the user for the stamina
 * and time left until stamina point refresh values to initialize class values properly.
 */
@@ -226,7 +268,6 @@ ModeAutomation::ModeAutomation()
 	stamina = secondsLeft = 0;
 	bIsRunning = true;
 	bExternalChange = false;
-	bDeviceAFK = false;
 
 	// Prompt user input to properly set stamina and secondsLeft fields.
 	initializeStamina();
@@ -240,17 +281,4 @@ void ModeAutomation::endStaminaThread()
 {
 	bIsRunning = false;
 	thr.join();
-}
-
-/**
-* Prevents the Android device from sleeping by sending inputs.
-*/
-void ModeAutomation::preventDeviceSleep()
-{
-	while (bDeviceAFK)
-	{
-		// Prevent spamming of inputs.
-		std::this_thread::sleep_for(std::chrono::seconds(1));
-		system("adb.exe shell input tap 700 975");
-	}
 }

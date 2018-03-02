@@ -37,7 +37,7 @@ void ChainChallengeAutomation::initializeData()
 	// Read data for the Chain Challenge.
 	std::string input;
 	std::cout << "Please leave your screen on the menu of the Chain Challenge that you want to automate." << std::endl;
-	std::cout << "Does your team die when auto-battling the Chain Challenge? Note: If your team does not die, stop at the last map. (y/n) ";
+	std::cout << "Does your team die when auto-battling the Chain Challenge? (y/n) ";
 	std::getline(std::cin, input);
 
 	// Error checking on answer.
@@ -53,7 +53,7 @@ void ChainChallengeAutomation::initializeData()
 	else
 		std::cout << "Enter how long in seconds your team takes to auto-battle until the last map: ";
 	std::getline(std::cin, input);
-	
+
 	// Error checking on answer.
 	if (!(std::stringstream(input) >> secondsToComplete))
 		printError(ChainChallengeError::INVALID_ANSWER);
@@ -72,27 +72,11 @@ void ChainChallengeAutomation::enterChainChallenge()
 	system("adb.exe shell input tap 720 850");
 
 	// Need to determine if player has sufficient stamina for Chain Challenge.
-	if (getStamina() < 30)
-	{
-		int staminaRequired = 30 - getStamina();
-		int timeToWait = staminaRequired * 300 - (300 - secondsLeft);
-		std::cout << "Not enough stamina... need to wait " << timeToWait << " seconds..." << std::endl;
-		
-		// Only need to send inputs to phone to prevent it from sleeping if wait is 30 minutes or longer.
-		if (timeToWait >= 1800)
-		{
-
-		}
-
-		// Send inputs to the phone to prevent it from sleeping while stamina regenerates.
-		bDeviceAFK = true;
-		std::thread waitThr(&ModeAutomation::preventDeviceSleep, this);
-		std::this_thread::sleep_for(std::chrono::seconds(timeToWait));
-		bDeviceAFK = false;
-		waitThr.join();
-	}
+	checkSufficientStamina(30);
+	setStamina(getStamina() - 30);
 
 	// Start the Chain Challenge.
+	std::this_thread::sleep_for(std::chrono::seconds(1));
 	system("adb.exe shell input tap 720 1550");
 
 	// Adjust stamina and wait for 7 seconds so screen initializes.
@@ -100,6 +84,14 @@ void ChainChallengeAutomation::enterChainChallenge()
 
 	// Open up options.
 	system("adb.exe shell input tap 150 2450");
+
+	// Select autobattle.
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+	system("adb.exe shell input tap 720 1300");
+
+	// Confirm autobattle.
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+	system("adb.exe shell input tap 720 1200");
 }
 
 /**
@@ -118,15 +110,24 @@ void ChainChallengeAutomation::leaveChainChallenge()
 		system("adb.exe shell input tap 150 2450");
 
 		// Select options.
+		std::this_thread::sleep_for(std::chrono::seconds(7));
 		system("adb.exe shell input tap 150 2450");
 
 		// Select surrender.
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+		system("adb.exe shell input tap 720 1800");
+
+		// Confirm surrender.
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+		system("adb.exe shell input tap 720 1300");
 	}
 
 	// Select surrender on team-select.
+	std::this_thread::sleep_for(std::chrono::seconds(1));
 	system("adb.exe shell input tap 400 2200");
 
 	// Confirm surrender.
+	std::this_thread::sleep_for(std::chrono::seconds(1));
 	system("adb.exe shell input tap 720 1225");
 }
 
@@ -151,7 +152,7 @@ void ChainChallengeAutomation::run()
 		enterChainChallenge();
 
 		// Let auto-battle do its work.
-		// std::this_thread::sleep_for(std::chrono::seconds(secondsToComplete));
+		std::this_thread::sleep_for(std::chrono::seconds(secondsToComplete));
 
 		// Leave Chain Challenge and restart.
 		leaveChainChallenge();
