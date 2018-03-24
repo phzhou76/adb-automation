@@ -313,17 +313,17 @@ bool ModeAutomation::useStaminaPotion()
 void ModeAutomation::enableAutobattle()
 {
 	// Adjust stamina and wait for 7 seconds so that the screen initializes.
-	std::this_thread::sleep_for(std::chrono::seconds(7));
+	std::this_thread::sleep_for(std::chrono::seconds(10));
 
 	// Open up options.
 	system("adb.exe shell input tap 150 2450");
 
 	// Select autobattle.
-	std::this_thread::sleep_for(std::chrono::seconds(1));
+	std::this_thread::sleep_for(std::chrono::seconds(2));
 	system("adb.exe shell input tap 720 1400");
 
 	// Confirm autobattle.
-	std::this_thread::sleep_for(std::chrono::seconds(1));
+	std::this_thread::sleep_for(std::chrono::seconds(2));
 	system("adb.exe shell input tap 720 1200");
 }
 

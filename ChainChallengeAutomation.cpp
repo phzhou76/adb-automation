@@ -72,11 +72,11 @@ void ChainChallengeAutomation::enterMode()
 	setStamina(getStamina() - 30);
 
 	// Select the Chain Challenge.
-	std::this_thread::sleep_for(std::chrono::seconds(3));
+	std::this_thread::sleep_for(std::chrono::seconds(5));
 	system("adb.exe shell input tap 720 850");
 
 	// Start the Chain Challenge.
-	std::this_thread::sleep_for(std::chrono::seconds(1));
+	std::this_thread::sleep_for(std::chrono::seconds(2));
 	system("adb.exe shell input tap 720 1550");
 
 	enableAutobattle();
@@ -93,16 +93,16 @@ void ChainChallengeAutomation::leaveMode()
 	if (teamDies)
 	{
 		// Select surrender on team-select.
-		std::this_thread::sleep_for(std::chrono::seconds(3));
+		std::this_thread::sleep_for(std::chrono::seconds(6));
 		system("adb.exe shell input tap 400 2200");
 
 		// Confirm surrender.
-		std::this_thread::sleep_for(std::chrono::seconds(1));
+		std::this_thread::sleep_for(std::chrono::seconds(2));
 		system("adb.exe shell input tap 720 1225");
 	}
 
 	// Wait past possible loading.
-	std::this_thread::sleep_for(std::chrono::seconds(2));
+	std::this_thread::sleep_for(std::chrono::seconds(4));
 }
 
 /**

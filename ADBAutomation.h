@@ -11,7 +11,9 @@ private:
 	class ModeAutomation * modeAutomation;
 
 private:
+	void printError();
 	void initializeDirectory();
+	void initializeMode();
 
 public:
 	ADBAutomation();

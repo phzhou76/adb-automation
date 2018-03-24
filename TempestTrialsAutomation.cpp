@@ -94,7 +94,7 @@ void TempestTrialsAutomation::updateScores()
 	if (tempestScore >= rewardPoints.at(0).at(nextReward))
 	{
 		// Exit reward screen.
-		std::this_thread::sleep_for(std::chrono::seconds(3));
+		std::this_thread::sleep_for(std::chrono::seconds(5));
 		system("adb.exe shell input tap 720 1700");
 		++nextReward;
 	}
@@ -111,11 +111,11 @@ void TempestTrialsAutomation::enterMode()
 	setStamina(getStamina() - 20);
 
 	// Select Hard 4.
-	std::this_thread::sleep_for(std::chrono::seconds(3));
+	std::this_thread::sleep_for(std::chrono::seconds(4));
 	system("adb.exe shell input tap 720 2150");
 
 	// Confirm selection.
-	std::this_thread::sleep_for(std::chrono::seconds(1));
+	std::this_thread::sleep_for(std::chrono::seconds(2));
 	system("adb.exe shell input tap 720 1700");
 
 	enableAutobattle();
@@ -131,14 +131,14 @@ void TempestTrialsAutomation::leaveMode()
 	system("adb.exe shell input tap 720 1200");
 
 	// Exit score screen.
-	std::this_thread::sleep_for(std::chrono::seconds(3));
+	std::this_thread::sleep_for(std::chrono::seconds(6));
 	system("adb.exe shell input tap 720 2200");
 
 	// Update and check scores.
 	updateScores();
 
 	// Wait past possible loading.
-	std::this_thread::sleep_for(std::chrono::seconds(2));
+	std::this_thread::sleep_for(std::chrono::seconds(4));
 }
 
 /**
