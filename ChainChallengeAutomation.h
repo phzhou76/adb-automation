@@ -19,8 +19,10 @@ private:
 private:
 	void printError(ChainChallengeError error);
 	void initializeData();
-	void enterChainChallenge();
-	void leaveChainChallenge();
+
+protected:
+	void enterMode();
+	void leaveMode();
 
 public:
 	ChainChallengeAutomation();		// Default constructor.

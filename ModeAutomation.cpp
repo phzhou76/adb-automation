@@ -31,6 +31,12 @@ void ModeAutomation::printError(StaminaError error)
 	case StaminaError::INVALID_TIME_AMOUNT:
 		std::cerr << "Error: Time input amount for either minutes or seconds was invalid." << std::endl;
 		break;
+	case StaminaError::INVALID_POTION_TYPE:
+		std::cerr << "Error: Potion input was not an integer." << std::endl;
+		break;
+	case StaminaError::INVALID_POTION_AMOUNT:
+		std::cerr << "Error: Potion amount was invalid." << std::endl;
+		break;
 	default:
 		break;
 	}
@@ -83,6 +89,16 @@ void ModeAutomation::initializeStamina()
 	if (minutes < 0 || seconds < 0 || secondsLeft > 300)
 		printError(StaminaError::INVALID_TIME_AMOUNT);
 
+	// Read in the number of stamina potions that the player wishes to use.
+	std::cout << "Enter the number of stamina potions available: ";
+	std::getline(std::cin, input);
+
+	// Error checking on potion values.
+	if (!(std::stringstream(input) >> potionsLeft))
+		printError(StaminaError::INVALID_POTION_TYPE);
+	else if (potionsLeft < 0)
+		printError(StaminaError::INVALID_POTION_AMOUNT);
+
 	// Immediately start the countdown once values have been initialized.
 	runStaminaThread();
 }
@@ -114,7 +130,7 @@ void ModeAutomation::adjustStamina()
 	std::unique_lock<std::mutex> lock(mtx);
 	cv.wait(lock, std::bind(&ModeAutomation::noExternalChanges, this));
 
-	// Edge case - stamina cannot go above 99.
+	// Edge case - stamina cannot go above 99. secondsLeft should have been set to 300 already.
 	if (stamina >= 99)
 	{
 		lock.unlock();
@@ -194,7 +210,7 @@ void ModeAutomation::setStamina(int staminaInput)
 /**
  * Getter for the amount of time left until stamina refresh.
  *
- * @return The amoount of time left until stamina refresh.
+ * @return The amount of time left until stamina refresh.
  */
 int ModeAutomation::getSecondsLeft()
 {
@@ -237,12 +253,14 @@ void ModeAutomation::checkSufficientStamina(int requiredStamina)
 	if (missingStamina <= 0)
 		return;
 
+	// Attempt to use a stamina potion if available.
+	if (useStaminaPotion())
+		return;
+
 	// Number of seconds to wait to acquire sufficient stamina for the mode.
 	int timeToWait = missingStamina * 300 - (300 - getSecondsLeft());
 
-#if DEBUG
 	std::cout << "Have to wait " << timeToWait << " seconds..." << std::endl;
-#endif
 
 	// Determine how many times an input must be sent to the phone to keep it awake.
 	int wakeCount = timeToWait / 1500;
@@ -251,11 +269,62 @@ void ModeAutomation::checkSufficientStamina(int requiredStamina)
 	{
 		// Phone falls asleep after 1800 seconds, so send an input every 1500 seconds.
 		std::this_thread::sleep_for(std::chrono::seconds(1500));
-		system("adb.exe shell input tap 700 975");
+		system("adb.exe shell input tap 720 700");
 	}
 
 	// Wait the final number of seconds that remain.
 	std::this_thread::sleep_for(std::chrono::seconds(timeToWait % 1500));
+}
+
+/**
+ * Uses a stamina potion to restore 99 stamina, if available.
+ *
+ * @return True if a stamina potion was used, false otherwise.
+ */
+bool ModeAutomation::useStaminaPotion()
+{
+	if (potionsLeft <= 0)
+		return false;
+
+	// Tap prompt to use a stamina potion.
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+	system("adb.exe shell input tap 675 150");
+
+	// Confirm usage of stamina potion.
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+	system("adb.exe shell input tap 720 1300");
+
+	// Restore stamina values.
+	setStamina(getStamina() + 99);
+	setSecondsLeft(300);
+
+	// Exit prompt.
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+	system("adb.exe shell input tap 720 1400");
+
+	--potionsLeft;
+
+	return true;
+}
+
+/**
+ * Enables autobattle.
+ */
+void ModeAutomation::enableAutobattle()
+{
+	// Adjust stamina and wait for 7 seconds so that the screen initializes.
+	std::this_thread::sleep_for(std::chrono::seconds(7));
+
+	// Open up options.
+	system("adb.exe shell input tap 150 2450");
+
+	// Select autobattle.
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+	system("adb.exe shell input tap 720 1400");
+
+	// Confirm autobattle.
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+	system("adb.exe shell input tap 720 1200");
 }
 
 /**
