@@ -292,15 +292,24 @@ bool ModeAutomation::useStaminaPotion()
 
 	// Confirm usage of stamina potion.
 	std::this_thread::sleep_for(std::chrono::seconds(4));
+<<<<<<< HEAD
 	system("adb.exe shell input tap 720 1300");
+=======
+	system("adb.exe shell input tap 300 1350");
+>>>>>>> be3dc7ce0d9d3e3ddee54f71dad4deb1a1290afa
 
 	// Restore stamina values.
 	setStamina(getStamina() + 99);
 	setSecondsLeft(300);
 
 	// Exit prompt.
+<<<<<<< HEAD
 	std::this_thread::sleep_for(std::chrono::seconds(4));
 	system("adb.exe shell input tap 720 1400");
+=======
+	std::this_thread::sleep_for(std::chrono::seconds(5));
+	system("adb.exe shell input tap 300 1400");
+>>>>>>> be3dc7ce0d9d3e3ddee54f71dad4deb1a1290afa
 
 	--potionsLeft;
 
@@ -320,11 +329,19 @@ void ModeAutomation::enableAutobattle()
 
 	// Select autobattle.
 	std::this_thread::sleep_for(std::chrono::seconds(4));
+<<<<<<< HEAD
 	system("adb.exe shell input tap 720 1400");
 
 	// Confirm autobattle.
 	std::this_thread::sleep_for(std::chrono::seconds(4));
 	system("adb.exe shell input tap 720 1200");
+=======
+	system("adb.exe shell input tap 300 1400");
+
+	// Confirm autobattle.
+	std::this_thread::sleep_for(std::chrono::seconds(4));
+	system("adb.exe shell input tap 300 1200");
+>>>>>>> be3dc7ce0d9d3e3ddee54f71dad4deb1a1290afa
 }
 
 /**
