@@ -115,8 +115,8 @@ void TempestTrialsAutomation::enterMode()
 	system("adb.exe shell input tap 720 2150");
 
 	// Confirm selection.
-	std::this_thread::sleep_for(std::chrono::seconds(2));
-	system("adb.exe shell input tap 720 1700");
+	std::this_thread::sleep_for(std::chrono::seconds(5));
+	system("adb.exe shell input tap 720 1750");
 
 	enableAutobattle();
 }
@@ -138,7 +138,7 @@ void TempestTrialsAutomation::leaveMode()
 	updateScores();
 
 	// Wait past possible loading.
-	std::this_thread::sleep_for(std::chrono::seconds(4));
+	std::this_thread::sleep_for(std::chrono::seconds(5));
 }
 
 /**
@@ -159,7 +159,9 @@ TempestTrialsAutomation::TempestTrialsAutomation(bool mini) : ModeAutomation()
 	nextReward = 0;
 	while (nextReward < rewardPoints.at(0).size() && rewardPoints.at(0).at(nextReward) <= tempestScore)
 		++nextReward;
-	std::cout << "Current reward tier: " << rewardPoints.at(0).at(nextReward) << std::endl;
+
+	if(nextReward < rewardPoints.at(0).size())
+		std::cout << "Current reward tier: " << rewardPoints.at(0).at(nextReward) << std::endl;
 }
 
 /**
