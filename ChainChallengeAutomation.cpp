@@ -76,7 +76,7 @@ void ChainChallengeAutomation::enterMode()
 	system("adb.exe shell input tap 720 850");
 
 	// Start the Chain Challenge.
-	std::this_thread::sleep_for(std::chrono::seconds(2));
+	std::this_thread::sleep_for(std::chrono::seconds(4));
 	system("adb.exe shell input tap 720 1550");
 
 	enableAutobattle();
@@ -97,7 +97,7 @@ void ChainChallengeAutomation::leaveMode()
 		system("adb.exe shell input tap 400 2200");
 
 		// Confirm surrender.
-		std::this_thread::sleep_for(std::chrono::seconds(2));
+		std::this_thread::sleep_for(std::chrono::seconds(4));
 		system("adb.exe shell input tap 720 1225");
 	}
 
